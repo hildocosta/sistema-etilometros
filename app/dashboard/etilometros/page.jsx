@@ -10,7 +10,8 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
-  X
+  X,
+  PlusCircle // Adicionado para o botão de cadastro
 } from "lucide-react";
 import React from "react";
 
@@ -59,13 +60,6 @@ export default function InventarioPage() {
     return matchesBusca && matchesStatus;
   });
 
-  const handleMudarParaManutencao = (id) => {
-    if (confirm(`Deseja alterar o status do item ${id} para Manutenção?`)) {
-      setEtilometros(prev => prev.map(item => item.id === id ? { ...item, status: "Manutenção" } : item));
-      setActiveDropdownId(null);
-    }
-  };
-
   return (
     <div className="flex h-screen w-screen bg-slate-950 overflow-hidden p-4 gap-4 antialiased">
       
@@ -77,13 +71,22 @@ export default function InventarioPage() {
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col overflow-hidden relative">
         
-        {/* CABEÇALHO */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <FileSpreadsheet className="text-blue-500" size={22} />
-            Inventário de Etilômetros
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">Lista simplificada de carga e status atual do P4 da unidade.</p>
+        {/* CABEÇALHO INTEGRADO COM O BOTÃO NOVO */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+              <FileSpreadsheet className="text-blue-500" size={22} />
+              Inventário de Etilômetros
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Lista simplificada de carga e status atual do P4 da unidade.</p>
+          </div>
+
+          <Link href="/dashboard/etilometros/novo">
+            <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/10 transition-all cursor-pointer">
+              <PlusCircle size={15} />
+              Novo Equipamento
+            </button>
+          </Link>
         </div>
 
         {/* FILTROS */}
@@ -116,7 +119,7 @@ export default function InventarioPage() {
           </div>
         </div>
 
-        {/* TABELA BASEADA EM GRID COMPLETO PARA PERFEITO ALINHAMENTO */}
+        {/* TABELA BASEADA EM GRID COMPLETO */}
         <div className="flex-1 bg-slate-950/20 rounded-xl border border-slate-800 overflow-y-auto flex flex-col">
           
           {/* HEADER DA GRID */}
@@ -176,59 +179,57 @@ export default function InventarioPage() {
                       <MoreVertical size={16} />
                     </button>
 
- {/* DROPDOWN FLUTUANTE PREMIUM COM INFORMAÇÕES CENTRALIZADAS (TAMANHO REDUZIDO) */}
-{activeDropdownId === aparelho.id && (
-  <div 
-    ref={dropdownRef}
-    className="absolute right-0 top-full mt-1 w-31 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-100 flex flex-col text-center"
-  >
-    {/* CABEÇALHO DO DROPDOWN APENAS COM O BOTÃO DE FECHAR (X) ALINHADO À DIREITA */}
-    <div className="flex justify-end px-2.5 py-1 border-b border-slate-800/40 mb-0.5">
-      <button 
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation(); 
-          setActiveDropdownId(null);
-        }}
-        className="p-1 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
-        title="Fechar Menu"
-      >
-        <X size={13} />
-      </button>
-    </div>
+                    {/* DROPDOWN FLUTUANTE PREMIUM COM INFORMAÇÕES CENTRALIZADAS (TAMANHO REDUZIDO) */}
+                    {activeDropdownId === aparelho.id && (
+                      <div 
+                        ref={dropdownRef}
+                        className="absolute right-0 top-full mt-1 w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-100 flex flex-col text-center"
+                      >
+                        {/* CABEÇALHO DO DROPDOWN APENAS COM O BOTÃO DE FECHAR (X) ALINHADO À DIREITA */}
+                        <div className="flex justify-end px-2.5 py-1 border-b border-slate-800/40 mb-0.5">
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation(); 
+                              setActiveDropdownId(null);
+                            }}
+                            className="p-1 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Fechar Menu"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
 
-    {/* Opção 1: Editar */}
-    <Link href={`/dashboard/etilometros/${aparelho.id}/editar`} className="w-full">
-      <button 
-        onClick={() => setActiveDropdownId(null)}
-        className="w-full px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center justify-center gap-2 font-medium text-xs cursor-pointer"
-      >
-        <Edit2 size={13} className="text-amber-500" />
-        <span>Editar</span>
-      </button>
-    </Link>
+                        {/* Opção 1: Editar */}
+                        <Link href={`/dashboard/etilometros/${aparelho.id}/editar`} className="w-full">
+                          <button 
+                            onClick={() => setActiveDropdownId(null)}
+                            className="w-full px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center justify-center gap-2 font-medium text-xs cursor-pointer"
+                          >
+                            <Edit2 size={13} className="text-amber-500" />
+                            <span>Editar</span>
+                          </button>
+                        </Link>
 
-    {/* Opção 2: Excluir (Redirecionando para a rota de exclusão dedicada) */}
-    <Link href={`/dashboard/etilometros/${aparelho.id}/excluir`} className="w-full">
-      <button 
-        onClick={() => setActiveDropdownId(null)}
-        className="w-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center justify-center gap-2 font-bold text-xs border-t border-slate-800/40 cursor-pointer"
-      >
-        <Trash2 size={13} />
-        <span>Excluir</span>
-      </button>
-    </Link>
-
-  </div>
-)}
-
+                        {/* Opção 2: Excluir */}
+                        <Link href={`/dashboard/etilometros/${aparelho.id}/excluir`} className="w-full">
+                          <button 
+                            onClick={() => setActiveDropdownId(null)}
+                            className="w-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center justify-center gap-2 font-bold text-xs border-t border-slate-800/40 cursor-pointer"
+                          >
+                            <Trash2 size={13} />
+                            <span>Excluir</span>
+                          </button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                 </div>
               ))
             ) : (
               <div className="py-12 text-center text-slate-500 font-medium">
-                Nênhum etilômetro localizado.
+                Nenhum etilômetro localizado.
               </div>
             )}
           </div>
