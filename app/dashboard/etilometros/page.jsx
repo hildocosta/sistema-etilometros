@@ -9,8 +9,8 @@ import {
   FileSpreadsheet,
   MoreVertical,
   Edit2,
-  Wrench,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 import React from "react";
 
@@ -176,45 +176,51 @@ export default function InventarioPage() {
                       <MoreVertical size={16} />
                     </button>
 
-                    {/* DROPDOWN FLUTUANTE PREMIUM COM INFORMAÇÕES CENTRALIZADAS */}
-                    {activeDropdownId === aparelho.id && (
-                      <div 
-                        ref={dropdownRef}
-                        className="absolute right-0 top-full mt-1 w-52 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in slide-in-from-top-2 duration-100 flex flex-col text-center"
-                      >
-                        {/* Opção 1: Editar */}
-                        <Link href={`/dashboard/etilometros/${aparelho.id}/editar`} className="w-full">
-                          <button 
-                            onClick={() => setActiveDropdownId(null)}
-                            className="w-full px-4 py-2.5 text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center justify-center gap-2 font-medium cursor-pointer"
-                          >
-                            <Edit2 size={13} className="text-amber-500" />
-                            <span>Editar Equipamento</span>
-                          </button>
-                        </Link>
+ {/* DROPDOWN FLUTUANTE PREMIUM COM INFORMAÇÕES CENTRALIZADAS (TAMANHO REDUZIDO) */}
+{activeDropdownId === aparelho.id && (
+  <div 
+    ref={dropdownRef}
+    className="absolute right-0 top-full mt-1 w-31 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-100 flex flex-col text-center"
+  >
+    {/* CABEÇALHO DO DROPDOWN APENAS COM O BOTÃO DE FECHAR (X) ALINHADO À DIREITA */}
+    <div className="flex justify-end px-2.5 py-1 border-b border-slate-800/40 mb-0.5">
+      <button 
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation(); 
+          setActiveDropdownId(null);
+        }}
+        className="p-1 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
+        title="Fechar Menu"
+      >
+        <X size={13} />
+      </button>
+    </div>
 
-                        {/* Opção 2: Manutenção */}
-                        <button 
-                          onClick={() => handleMudarParaManutencao(aparelho.id)}
-                          className="w-full px-4 py-2.5 text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center justify-center gap-2 font-medium border-t border-slate-800/40 cursor-pointer"
-                        >
-                          <Wrench size={13} className="text-orange-500" />
-                          <span>Enviar p/ Manutenção</span>
-                        </button>
+    {/* Opção 1: Editar */}
+    <Link href={`/dashboard/etilometros/${aparelho.id}/editar`} className="w-full">
+      <button 
+        onClick={() => setActiveDropdownId(null)}
+        className="w-full px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center justify-center gap-2 font-medium text-xs cursor-pointer"
+      >
+        <Edit2 size={13} className="text-amber-500" />
+        <span>Editar</span>
+      </button>
+    </Link>
 
-                        {/* Opção 3: Baixar Carga (Redirecionando para a rota de exclusão dedicada) */}
-                        <Link href={`/dashboard/etilometros/${aparelho.id}/excluir`} className="w-full">
-                          <button 
-                            onClick={() => setActiveDropdownId(null)}
-                            className="w-full px-4 py-2.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center justify-center gap-2 font-bold border-t border-slate-800/40 cursor-pointer"
-                          >
-                            <Trash2 size={13} />
-                            <span>Baixar Carga</span>
-                          </button>
-                        </Link>
+    {/* Opção 2: Excluir (Redirecionando para a rota de exclusão dedicada) */}
+    <Link href={`/dashboard/etilometros/${aparelho.id}/excluir`} className="w-full">
+      <button 
+        onClick={() => setActiveDropdownId(null)}
+        className="w-full px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center justify-center gap-2 font-bold text-xs border-t border-slate-800/40 cursor-pointer"
+      >
+        <Trash2 size={13} />
+        <span>Excluir</span>
+      </button>
+    </Link>
 
-                      </div>
-                    )}
+  </div>
+)}
 
                   </div>
 
