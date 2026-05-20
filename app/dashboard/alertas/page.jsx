@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar/page";
+import Link from "next/link";
+// IMPORTAÇÃO DA BASE DE DADOS REAL CENTRALIZADA
+import { etilometrosDados } from "../etilometros/data"; 
 import { 
   AlertTriangle, 
   Calendar, 
@@ -12,27 +15,44 @@ import {
 } from "lucide-react";
 import React from "react";
 
-// DADOS FICTÍCIOS BASEADOS NA CARGA DO 17º BPM COM DATAS DE CALIBRAÇÃO (VENCIMENTOS BASEADOS EM 2026)
-const dadosAlertasIniciais = [
-  { id: "ET-002", serie: "124578-AH", equipamento: "Alcoohawk PT500", cia: "2ª Cia (Bairro)", dataVencimento: "2026-06-10", diasRestantes: 22, statusValidade: "Critico", numInmetro: "2024-44125" },
-  { id: "ET-003", serie: "542188-DR", equipamento: "Dräger 7510", cia: "Trânsito / Pelotão", dataVencimento: "2026-05-02", diasRestantes: -17, statusValidade: "Vencido", numInmetro: "2024-11520" },
-  { id: "ET-001", serie: "987451-DR", equipamento: "Dräger 6820", cia: "1ª Cia (Centro)", dataVencimento: "2026-11-15", diasRestantes: 180, statusValidade: "Regular", numInmetro: "2024-99812" },
-  { id: "ET-004", serie: "334211-AH", equipamento: "Alcoohawk PT500", cia: "ROCAM", dataVencimento: "2026-12-01", diasRestantes: 196, statusValidade: "Regular", numInmetro: "2024-44129" },
-  { id: "ET-005", serie: "776512-DR", equipamento: "Dräger 6820", cia: "3ª Cia (SJP)", dataVencimento: "2026-07-25", diasRestantes: 67, statusValidade: "Atencao", numInmetro: "2024-99815" },
-];
-
 export default function AlertasValidadePage() {
-  const [alertas, setAlertas] = useState(dadosAlertasIniciais);
   const [busca, setBusca] = useState("");
   const [filtroGravidade, setFiltroGravidade] = useState("Todos");
 
-  // Formatador de data simples para o padrão brasileiro
-  const formatarDataBR = (dataString) => {
-    const [ano, mes, dia] = dataString.split("-");
-    return `${dia}/${mes}/${ano}`;
+  // Converte string "DD/MM/AAAA" em Objeto Date para cálculos precisos
+  const parseDataBR = (dataString) => {
+    if (!dataString) return new Date();
+    const [dia, mes, ano] = dataString.split("/");
+    return new Date(ano, mes - 1, dia);
   };
 
-  // Retorna cores e textos dinâmicos para a gravidade do vencimento
+  // Processa a base de dados centralizada calculando prazos reais baseados no dia de hoje
+  const alertasProcessados = etilometrosDados.map(aparelho => {
+    const hoje = new Date();
+    const dataLimite = parseDataBR(aparelho.proximaCalibracao);
+    
+    // Calcula a diferença em milissegundos e converte para dias inteiros
+    const diferencaTempo = dataLimite.getTime() - hoje.getTime();
+    const diasRestantes = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+
+    let statusValidade = "Regular";
+    if (diasRestantes <= 0) {
+      statusValidade = "Vencido";
+    } else if (diasRestantes <= 30) {
+      statusValidade = "Critico";
+    } else if (diasRestantes <= 90) {
+      statusValidade = "Atencao";
+    }
+
+    return {
+      ...aparelho,
+      diasRestantes,
+      statusValidade,
+      dataVencimentoFormatada: aparelho.proximaCalibracao || "01/01/2027"
+    };
+  });
+
+  // Retorna estilos visuais e textos com base na severidade calculada
   const getGravidadeStyle = (statusValidade, dias) => {
     switch (statusValidade) {
       case "Vencido":
@@ -62,13 +82,13 @@ export default function AlertasValidadePage() {
     }
   };
 
-  // Contadores analíticos
-  const totalVencidos = alertas.filter(a => a.statusValidade === "Vencido").length;
-  const totalCriticos = alertas.filter(a => a.statusValidade === "Critico").length;
-  const totalRegulares = alertas.filter(a => a.statusValidade === "Regular" || a.statusValidade === "Atencao").length;
+  // Contadores analíticos baseados nos dados reais da planilha do 17º BPM
+  const totalVencidos = alertasProcessados.filter(a => a.statusValidade === "Vencido").length;
+  const totalCriticos = alertasProcessados.filter(a => a.statusValidade === "Critico").length;
+  const totalRegulares = alertasProcessados.filter(a => a.statusValidade === "Regular" || a.statusValidade === "Atencao").length;
 
-  // Filtragem combinada (Busca textual + Filtro por gravidade)
-  const alertasFiltrados = alertas.filter(aparelho => {
+  // Filtragem inteligente combinada
+  const alertasFiltrados = alertasProcessados.filter(aparelho => {
     const matchesBusca = aparelho.serie.toLowerCase().includes(busca.toLowerCase()) || 
                          aparelho.equipamento.toLowerCase().includes(busca.toLowerCase()) ||
                          aparelho.cia.toLowerCase().includes(busca.toLowerCase());
@@ -94,11 +114,11 @@ export default function AlertasValidadePage() {
             Alertas de Validade (INMETRO / RBML)
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Controle de prazos e conformidade jurídica das aferições anuais obrigatórias.
+            Controle analítico de prazos jurídicos e auditoria de aferições do 17º BPM.
           </p>
         </div>
 
-        {/* CARDS ANALÍTICOS RÁPIDOS */}
+        {/* CARDS ANALÍTICOS REALISTAS */}
         <div className="grid grid-cols-3 gap-4 mb-5 shrink-0">
           <div className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
             <div>
@@ -176,7 +196,7 @@ export default function AlertasValidadePage() {
           <div className="grid grid-cols-12 bg-slate-900/50 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider py-3.5 px-5 sticky top-0 backdrop-blur-md z-10 items-center">
             <div className="col-span-2">Nº de Série</div>
             <div className="col-span-3">Equipamento / Carga</div>
-            <div className="col-span-2 text-center">Última Portaria</div>
+            <div className="col-span-2 text-center">Portaria Inmetro</div>
             <div className="col-span-2 text-center">Data Limite</div>
             <div className="col-span-2 text-center">Status de Validade</div>
             <div className="col-span-1 text-right pr-2">Ação</div>
@@ -202,21 +222,21 @@ export default function AlertasValidadePage() {
                     <div className="col-span-3 flex flex-col truncate pr-2">
                       <span className="font-medium text-slate-200 truncate">{aparelho.equipamento}</span>
                       <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                        <Shield size={10} className="text-slate-500" />
+                        <Shield size={10} className="text-blue-500" />
                         {aparelho.cia}
                       </span>
                     </div>
 
                     {/* Portaria Inmetro */}
                     <div className="col-span-2 font-medium text-slate-400 font-mono text-center truncate">
-                      {aparelho.numInmetro}
+                      {aparelho.numInmetro || "Pendente"}
                     </div>
 
                     {/* Data Limite */}
                     <div className="col-span-2 text-center font-medium text-slate-300">
                       <div className="flex items-center justify-center gap-1.5">
                         <Calendar size={12} className="text-slate-500" />
-                        {formatarDataBR(aparelho.dataVencimento)}
+                        {aparelho.dataVencimentoFormatada}
                       </div>
                     </div>
 
@@ -227,15 +247,16 @@ export default function AlertasValidadePage() {
                       </span>
                     </div>
 
-                    {/* Ação: Direcionar para a Ficha Técnica para atualizar a aferição */}
+                    {/* Ação: Direcionar com Next Link para evitar recarregamento total */}
                     <div className="col-span-1 flex items-center justify-end pr-1">
-                      <button 
-                        onClick={() => window.location.href = `/dashboard/etilometros/${aparelho.id}`}
-                        title="Ver Ficha Técnica" 
-                        className="p-1.5 text-slate-500 hover:text-blue-400 rounded-md hover:bg-blue-500/10 transition-all cursor-pointer flex items-center justify-center"
-                      >
-                        <ExternalLink size={14} />
-                      </button>
+                      <Link href={`/dashboard/etilometros/${aparelho.id}`}>
+                        <button 
+                          title="Ver Ficha Técnica" 
+                          className="p-1.5 text-slate-500 hover:text-blue-400 rounded-md hover:bg-blue-500/10 transition-all cursor-pointer flex items-center justify-center"
+                        >
+                          <ExternalLink size={14} />
+                        </button>
+                      </Link>
                     </div>
 
                   </div>

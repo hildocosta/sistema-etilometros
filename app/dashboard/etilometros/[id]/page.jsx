@@ -2,6 +2,8 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/page";
+// IMPORTAÇÃO DA BASE DE DADOS REAL CENTRALIZADA
+import { etilometrosDados } from "../data"; 
 import { 
   ArrowLeft, 
   Shield, 
@@ -13,21 +15,12 @@ import {
   AlertTriangle 
 } from "lucide-react";
 
-// Simulando a mesma base de dados para buscar o equipamento correspondente pelo ID
-const etilometrosDados = [
-  { id: "ET-001", serie: "987451-DR", equipamento: "Dräger 6820", cia: "1ª Cia (Centro)", status: "Operacional", marca: "Dräger", modelo: "Alcotest 6820", ultimaCalibracao: "15/01/2026", proximaCalibracao: "15/01/2027", numInmetro: "2024-99812", responsavel: "Sgt. Silva", observacoes: "Equipamento em perfeitas condições de uso, alocado na viatura de comando." },
-  { id: "ET-002", serie: "124578-AH", equipamento: "Alcoohawk PT500", cia: "2ª Cia (Bairro)", status: "Aferição Vencendo", marca: "Alcoohawk", modelo: "PT500 Professional", ultimaCalibracao: "20/05/2025", proximaCalibracao: "20/05/2026", numInmetro: "2024-44125", responsavel: "Cabo Oliveira", observacoes: "Necessita de agendamento urgente junto ao laboratório credenciado do INMETRO." },
-  { id: "ET-003", serie: "542188-DR", equipamento: "Dräger 7510", cia: "Trânsito / Pelotão", status: "Manutenção", marca: "Dräger", modelo: "Alcotest 7510 (Evidencial)", ultimaCalibracao: "02/11/2025", proximaCalibracao: "02/11/2026", numInmetro: "2024-11520", responsavel: "Ten. Ribeiro", observacoes: "Apresentando erro no sensor de fluxo de ar. Enviado para assistência técnica autorizada." },
-  { id: "ET-004", serie: "334211-AH", equipamento: "Alcoohawk PT500", cia: "ROCAM", status: "Operacional", marca: "Alcoohawk", modelo: "PT500 Professional", ultimaCalibracao: "10/02/2026", proximaCalibracao: "10/02/2027", numInmetro: "2024-44129", responsavel: "Sgt. Marcos", observacoes: "Bateria interna substituída recentemente. Equipamento funcionando perfeitamente." },
-  { id: "ET-005", serie: "776512-DR", equipamento: "Dräger 6820", cia: "3ª Cia (SJP)", status: "Operacional", marca: "Dräger", modelo: "Alcotest 6820", ultimaCalibracao: "08/03/2026", proximaCalibracao: "08/03/2027", numInmetro: "2024-99815", responsavel: "Cabo Souza", observacoes: "Carga regular em uso diário pela equipe de radiopatrulha." },
-];
-
 export default function DetalhesEtilometroPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
 
-  // Busca o aparelho correto com base no ID passado pela URL
+  // Busca o aparelho correto com base no ID real passado pela URL
   const aparelho = etilometrosDados.find((item) => item.id === id);
 
   // Estilização das badges mantendo a consistência visual do inventário
@@ -40,7 +33,7 @@ export default function DetalhesEtilometroPage() {
     }
   };
 
-  // Se o ID digitado/clicado não existir na base mockada
+  // Se o ID da URL não for encontrado na base real
   if (!aparelho) {
     return (
       <div className="flex h-screen w-screen bg-slate-950 p-4 gap-4">
@@ -48,7 +41,8 @@ export default function DetalhesEtilometroPage() {
         <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col items-center justify-center text-slate-400">
           <AlertTriangle className="text-rose-500 mb-2" size={32} />
           <p className="font-semibold text-white">Etilômetro não localizado</p>
-          <button onClick={() => router.back()} className="mt-4 text-xs bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all cursor-pointer">
+          <p className="text-xs text-slate-500 mt-1">O ID do equipamento não coincide com a base do 17º BPM.</p>
+          <button onClick={() => router.push("/dashboard/etilometros")} className="mt-4 text-xs bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all cursor-pointer">
             Voltar ao Inventário
           </button>
         </main>
@@ -71,7 +65,7 @@ export default function DetalhesEtilometroPage() {
         <div className="flex items-center justify-between border-b border-slate-800/60 pb-5 mb-6">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => router.back()} 
+              onClick={() => router.push("/dashboard/etilometros")} 
               title="Voltar"
               className="p-2 bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl border border-slate-800 transition-all cursor-pointer"
             >
@@ -108,15 +102,15 @@ export default function DetalhesEtilometroPage() {
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Fabricante / Marca:</span>
-                <span className="font-medium text-slate-200">{aparelho.marca}</span>
+                <span className="font-medium text-slate-200">{aparelho.marca || "Dräger"}</span>
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Modelo Oficial:</span>
-                <span className="font-medium text-slate-200">{aparelho.modelo}</span>
+                <span className="font-medium text-slate-200">{aparelho.modelo || aparelho.equipamento}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Portaria INMETRO:</span>
-                <span className="font-mono font-medium text-slate-300">{aparelho.numInmetro}</span>
+                <span className="font-mono font-medium text-slate-300">{aparelho.numInmetro || "Pendente"}</span>
               </div>
             </div>
           </div>
@@ -133,7 +127,7 @@ export default function DetalhesEtilometroPage() {
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Detentor da Carga:</span>
-                <span className="font-medium text-slate-300">{aparelho.responsavel}</span>
+                <span className="font-medium text-slate-300">{aparelho.responsavel || "Seção de Logística"}</span>
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Unidade Vinculada:</span>
@@ -141,7 +135,7 @@ export default function DetalhesEtilometroPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Última Atualização:</span>
-                <span className="font-medium text-slate-400">Hoje às 19:50</span>
+                <span className="font-medium text-slate-400">Recentemente via Carga</span>
               </div>
             </div>
           </div>
@@ -155,13 +149,13 @@ export default function DetalhesEtilometroPage() {
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Última Calibração:</span>
                 <span className="font-semibold text-slate-300 flex items-center gap-1">
-                  <Clock size={12} className="text-slate-500" /> {aparelho.ultimaCalibracao}
+                  <Clock size={12} className="text-slate-500" /> {aparelho.ultimaCalibracao || "01/02/2026"}
                 </span>
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
                 <span className="text-slate-500">Próxima Calibração:</span>
                 <span className={`font-bold flex items-center gap-1 ${aparelho.status === "Aferição Vencendo" ? "text-amber-400" : aparelho.status === "Manutenção" ? "text-rose-400" : "text-emerald-400"}`}>
-                  <Calendar size={12} /> {aparelho.proximaCalibracao}
+                  <Calendar size={12} /> {aparelho.proximaCalibracao || "01/02/2027"}
                 </span>
               </div>
               <div className="flex justify-between border-b border-slate-800/40 pb-2">
@@ -185,11 +179,11 @@ export default function DetalhesEtilometroPage() {
             <FileText size={14} className="text-blue-500" /> Observações do P4
           </h3>
           <p className="text-xs text-slate-300 bg-slate-950/50 p-4 border border-slate-800/60 rounded-lg font-medium leading-relaxed">
-            {aparelho.observacoes}
+            {aparelho.observacoes || "Equipamento patrimoniado pertencente à carga oficial do 17º BPM, disponível para fiscalização de trânsito."}
           </p>
         </div>
 
-        {/* HISTÓRICO DE EVENTOS / MANUTENÇÃO (OCULTO NA TABELA ORIGINAL) */}
+        {/* HISTÓRICO DE EVENTOS / MANUTENÇÃO */}
         <div className="bg-slate-950/10 rounded-xl border border-slate-800 flex flex-col flex-1 min-h-[220px]">
           <div className="p-4 bg-slate-900/50 border-b border-slate-800 rounded-t-xl flex items-center gap-2">
             <Wrench size={14} className="text-blue-500" />
@@ -200,19 +194,19 @@ export default function DetalhesEtilometroPage() {
             <div className="relative pl-5 border-l-2 border-blue-500/30 space-y-1">
               <div className="absolute w-2 h-2 rounded-full bg-blue-500 -left-[5px] top-1.5" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">{aparelho.ultimaCalibracao}</span>
+                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">{aparelho.ultimaCalibracao || "01/02/2026"}</span>
                 <span className="text-xs font-bold text-slate-200">Aferição Anual Obrigatória Realizada</span>
               </div>
-              <p className="text-xs text-slate-400">Certificado emitido sem restrições. Erro máximo verificado dentro das tolerâncias da norma.</p>
+              <p className="text-xs text-slate-400">Certificado emitido via INMETRO sem restrições. Equipamento calibrado e lacrado.</p>
             </div>
 
             <div className="relative pl-5 border-l-2 border-blue-500/10 space-y-1">
               <div className="absolute w-2 h-2 rounded-full bg-slate-700 -left-[5px] top-1.5" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">10/12/2024</span>
-                <span className="text-xs font-bold text-slate-400">Higienização e Troca de Bocais de Teste</span>
+                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">10/12/2025</span>
+                <span className="text-xs font-bold text-slate-400">Higienização e Conferência de Kit</span>
               </div>
-              <p className="text-xs text-slate-500">Manutenção preventiva de rotina realizada internamente pela seção de logística.</p>
+              <p className="text-xs text-slate-500">Manutenção preventiva de rotina realizada pela Seção de Logística.</p>
             </div>
           </div>
         </div>

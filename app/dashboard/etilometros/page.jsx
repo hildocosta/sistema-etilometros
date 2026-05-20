@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar/page";
+// IMPORTAÇÃO DOS DADOS REAIS CENTRALIZADOS
+import { etilometrosDados } from "./data";
 import { 
   Search, 
   Eye,
@@ -11,28 +13,19 @@ import {
   Edit2,
   Trash2,
   X,
-  PlusCircle // Adicionado para o botão de cadastro
+  PlusCircle 
 } from "lucide-react";
 import React from "react";
 
-const etilometrosIniciais = [
-  { id: "ET-001", serie: "987451-DR", equipamento: "Dräger 6820", cia: "1ª Cia (Centro)", status: "Operacional", marca: "Dräger", modelo: "Alcotest 6820", numInmetro: "2024-99812", responsavel: "Sgt. Silva" },
-  { id: "ET-002", serie: "124578-AH", equipamento: "Alcoohawk PT500", cia: "2ª Cia (Bairro)", status: "Aferição Vencendo", marca: "Alcoohawk", modelo: "PT500 Professional", numInmetro: "2024-44125", responsavel: "Cabo Oliveira" },
-  { id: "ET-003", serie: "542188-DR", equipamento: "Dräger 7510", cia: "Trânsito / Pelotão", status: "Manutenção", marca: "Dräger", modelo: "Alcotest 7510 (Evidencial)", numInmetro: "2024-11520", responsavel: "Ten. Ribeiro" },
-  { id: "ET-004", serie: "334211-AH", equipamento: "Alcoohawk PT500", cia: "ROCAM", status: "Operacional", marca: "Alcoohawk", modelo: "PT500 Professional", numInmetro: "2024-44129", responsavel: "Sgt. Marcos" },
-  { id: "ET-005", serie: "776512-DR", equipamento: "Dräger 6820", cia: "3ª Cia (SJP)", status: "Operacional", marca: "Dräger", modelo: "Alcotest 6820", numInmetro: "2024-99815", responsavel: "Cabo Souza" },
-];
-
 export default function InventarioPage() {
-  const [etilometros, setEtilometros] = useState(etilometrosIniciais);
+  // Inicializa o estado usando a base vinda do arquivo de dados unificado
+  const [etilometros, setEtilometros] = useState(etilometrosDados);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("Todos");
   
-  // Controle do menu flutuante por ID do item
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Fecha o dropdown se clicar fora dele
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -52,6 +45,7 @@ export default function InventarioPage() {
     }
   };
 
+  // Filtragem inteligente que pesquisa por Nº de Série, Equipamento ou localidade da Cia
   const etilometrosFiltrados = etilometros.filter(aparelho => {
     const matchesBusca = aparelho.serie.toLowerCase().includes(busca.toLowerCase()) || 
                          aparelho.equipamento.toLowerCase().includes(busca.toLowerCase()) ||
@@ -71,14 +65,14 @@ export default function InventarioPage() {
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col overflow-hidden relative">
         
-        {/* CABEÇALHO INTEGRADO COM O BOTÃO NOVO */}
+        {/* CABEÇALHO */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
               <FileSpreadsheet className="text-blue-500" size={22} />
               Inventário de Etilômetros
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Lista simplificada de carga e status atual do P4 da unidade.</p>
+            <p className="text-xs text-slate-400 mt-1">Lista de carga e localização atual da Seção de Logística (P4).</p>
           </div>
 
           <Link href="/dashboard/etilometros/novo">
@@ -95,7 +89,7 @@ export default function InventarioPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
             <input 
               type="text" 
-              placeholder="Buscar etilômetro..."
+              placeholder="Buscar por série, subunidade..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-slate-800 rounded-lg text-sm bg-slate-900 focus:outline-none focus:border-blue-500 text-slate-200 placeholder:text-slate-500"
@@ -103,7 +97,7 @@ export default function InventarioPage() {
           </div>
 
           <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto scrollbar-none">
-            {["Todos", "Operacional", "Aferição Vencendo", "Manutenção"].map((status) => (
+            {["Todos", "Operacional", "Manutenção"].map((status) => (
               <button
                 key={status}
                 onClick={() => setFiltroStatus(status)}
@@ -119,19 +113,19 @@ export default function InventarioPage() {
           </div>
         </div>
 
-        {/* TABELA BASEADA EM GRID COMPLETO */}
+        {/* TABELA EM GRID */}
         <div className="flex-1 bg-slate-950/20 rounded-xl border border-slate-800 overflow-y-auto flex flex-col">
           
-          {/* HEADER DA GRID */}
+          {/* HEADER */}
           <div className="grid grid-cols-12 bg-slate-900/50 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider py-3.5 px-5 sticky top-0 backdrop-blur-md z-10 items-center">
             <div className="col-span-2">Nº de Série</div>
             <div className="col-span-3">Equipamento</div>
-            <div className="col-span-4">Carga / Localização</div>
+            <div className="col-span-4">Carga / Localização (17º BPM)</div>
             <div className="col-span-2 text-center">Status</div>
             <div className="col-span-1 text-right pr-2">Ações</div>
           </div>
 
-          {/* CORPO DA GRID */}
+          {/* CORPO */}
           <div className="divide-y divide-slate-800/40 text-slate-300 text-xs flex-1">
             {etilometrosFiltrados.length > 0 ? (
               etilometrosFiltrados.map((aparelho) => (
@@ -150,7 +144,9 @@ export default function InventarioPage() {
                   {/* Carga / Localização */}
                   <div className="col-span-4 flex items-center gap-2 truncate pr-2">
                     <Shield size={13} className="text-blue-500 shrink-0" />
-                    <span className="truncate text-slate-300 font-medium">{aparelho.cia}</span>
+                    <span className="truncate text-slate-300 font-medium" title={aparelho.cia}>
+                      {aparelho.cia}
+                    </span>
                   </div>
 
                   {/* Status Badge */}
@@ -160,7 +156,7 @@ export default function InventarioPage() {
                     </span>
                   </div>
 
-                  {/* Coluna de Ação Enxuta */}
+                  {/* Ações */}
                   <div className="col-span-1 flex items-center justify-end gap-1 relative">
                     
                     <Link href={`/dashboard/etilometros/${aparelho.id}`}>
@@ -179,13 +175,12 @@ export default function InventarioPage() {
                       <MoreVertical size={16} />
                     </button>
 
-                    {/* DROPDOWN FLUTUANTE PREMIUM COM INFORMAÇÕES CENTRALIZADAS (TAMANHO REDUZIDO) */}
+                    {/* DROPDOWN FLUTUANTE */}
                     {activeDropdownId === aparelho.id && (
                       <div 
                         ref={dropdownRef}
                         className="absolute right-0 top-full mt-1 w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-100 flex flex-col text-center"
                       >
-                        {/* CABEÇALHO DO DROPDOWN APENAS COM O BOTÃO DE FECHAR (X) ALINHADO À DIREITA */}
                         <div className="flex justify-end px-2.5 py-1 border-b border-slate-800/40 mb-0.5">
                           <button 
                             type="button"
@@ -200,7 +195,7 @@ export default function InventarioPage() {
                           </button>
                         </div>
 
-                        {/* Opção 1: Editar */}
+                        {/* Editar */}
                         <Link href={`/dashboard/etilometros/${aparelho.id}/editar`} className="w-full">
                           <button 
                             onClick={() => setActiveDropdownId(null)}
@@ -211,7 +206,7 @@ export default function InventarioPage() {
                           </button>
                         </Link>
 
-                        {/* Opção 2: Excluir */}
+                        {/* Excluir */}
                         <Link href={`/dashboard/etilometros/${aparelho.id}/excluir`} className="w-full">
                           <button 
                             onClick={() => setActiveDropdownId(null)}
