@@ -8,20 +8,18 @@ import {
   Shield,           
   FileSpreadsheet,  
   AlertTriangle,    
-  Wrench,           
   LogOut,
   Loader2,
   ChevronRight,
   FileText        
 } from "lucide-react";
 
-// MENU EXCLUSIVO PARA GESTORES (COMANDO DO BATALHÃO / P4)
+// MENU EXCLUSIVO PARA GESTORES (COMANDO DO BATALHÃO / P4) - ATUALIZADO (OPÇÃO 1)
 const menuItems = [
-  { name: "Painel Geral", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Painel Geral", icon: LayoutDashboard, path: "/" }, // Rota raiz onde está seu page.jsx
   { name: "Inventário Geral", icon: FileSpreadsheet, path: "/dashboard/etilometros" }, 
   { name: "Alertas de Validade", icon: AlertTriangle, path: "/dashboard/alertas" },
   { name: "Distribuição (Cias)", icon: Shield, path: "/dashboard/companhias" },  
-  { name: "Manutenções / INMETRO", icon: Wrench, path: "/dashboard/manutencao" },
   { name: "Relatórios de Uso", icon: FileText, path: "/dashboard/relatorios" },
 ];
 
@@ -70,8 +68,8 @@ export default function Sidebar() {
         {menuItems.map((item) => {
           const Icon = item.icon;
           
-          // Tratamento correto do estado ativo das rotas
-          const isActive = item.path === "/dashboard" 
+          // Tratamento corrigido para a rota raiz "/" e sub-rotas do dashboard
+          const isActive = item.path === "/" 
             ? pathname === item.path 
             : pathname === item.path || pathname.startsWith(`${item.path}/`);
 
