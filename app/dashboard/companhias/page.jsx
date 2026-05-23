@@ -22,7 +22,7 @@ export default function DistribuicaoCiasPage() {
     { id: "pptran", nome: "Trânsito (PPTRAN / Sede)", buscaTermo: "PPTRAN", icone: Shield, cor: "from-amber-600 to-orange-600" }
   ];
 
-  // Iniciar a tela com o Almoxarifado aberto (onde tem mais volume de carga no print)
+  // Iniciar a tela com o Almoxarifado aberto
   const [ciaAberta, setCiaAberta] = useState("almox");
 
   // Filtra de forma inteligente se o texto da planilha contém o termo chave da subunidade
@@ -32,10 +32,7 @@ export default function DistribuicaoCiasPage() {
     );
     return {
       aparelhos: aparelhosDaCia,
-      total: aparelhosDaCia.length,
-      operacionais: aparelhosDaCia.filter(a => a.status === "Operacional").length,
-      alertas: aparelhosDaCia.filter(a => a.status === "Aferição Vencendo").length,
-      manutencao: aparelhosDaCia.filter(a => a.status === "Manutenção").length,
+      total: aparelhosDaCia.length
     };
   };
 
@@ -107,22 +104,6 @@ export default function DistribuicaoCiasPage() {
                       </div>
                     </div>
                     <ChevronRight size={14} className={`text-slate-600 transition-transform ${isSelected ? "text-blue-500 translate-x-0.5" : "group-hover:text-slate-400"}`} />
-                  </div>
-
-                  {/* Indicadores numéricos baseados na planilha */}
-                  <div className="grid grid-cols-3 gap-2 pt-1 pl-1">
-                    <div className="bg-slate-900/60 rounded-md p-1.5 border border-slate-800/60 text-center">
-                      <span className="text-[9px] font-bold text-slate-500 block uppercase">Prontos</span>
-                      <span className="text-xs font-black text-emerald-400 mt-0.5 block">{dados.operacionais}</span>
-                    </div>
-                    <div className="bg-slate-900/60 rounded-md p-1.5 border border-slate-800/60 text-center">
-                      <span className="text-[9px] font-bold text-slate-500 block uppercase">Alertas</span>
-                      <span className="text-xs font-black text-amber-400 mt-0.5 block">{dados.alertas}</span>
-                    </div>
-                    <div className="bg-slate-900/60 rounded-md p-1.5 border border-slate-800/60 text-center">
-                      <span className="text-[9px] font-bold text-slate-500 block uppercase">Mnt</span>
-                      <span className="text-xs font-black text-rose-400 mt-0.5 block">{dados.manutencao}</span>
-                    </div>
                   </div>
                 </div>
               );
