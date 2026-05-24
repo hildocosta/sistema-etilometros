@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react"; 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -14,9 +15,8 @@ import {
   FileText        
 } from "lucide-react";
 
-// MENU EXCLUSIVO PARA GESTORES (COMANDO DO BATALHÃO / P4) - ATUALIZADO (OPÇÃO 1)
 const menuItems = [
-  { name: "Painel Geral", icon: LayoutDashboard, path: "/" }, // Rota raiz onde está seu page.jsx
+  { name: "Painel Geral", icon: LayoutDashboard, path: "/" }, 
   { name: "Inventário Geral", icon: FileSpreadsheet, path: "/dashboard/etilometros" }, 
   { name: "Alertas de Validade", icon: AlertTriangle, path: "/dashboard/alertas" },
   { name: "Distribuição (Cias)", icon: Shield, path: "/dashboard/companhias" },  
@@ -38,37 +38,36 @@ export default function Sidebar() {
 
   return (
     <aside className="w-full h-full bg-slate-900 rounded-2xl shadow-xl border border-slate-800 flex flex-col justify-between overflow-hidden">
-      
-      {/* Topo do Menu: Identidade Visual do 17º BPM */}
-      <div className="flex items-center justify-center px-4 py-6 border-b border-slate-800/50 shrink-0">
-        <Image 
-          src="/assets/image/bg-profile.png" 
-          alt="Logo 17º BPM" 
-          width={38} 
-          height={38}
-          className="brightness-125 select-none"
-        />
-        <div className="flex flex-col ml-3">
-          <span className="text-white font-bold tracking-wider text-xs uppercase leading-none">
+      <div className="flex items-center px-5 py-6 border-b border-slate-800/50 shrink-0">
+        <div className="relative w-12 h-12 shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/40 p-1 border border-slate-800/60 shadow-inner">
+          <Image 
+            src="/assets/image/bg-profile.png" 
+            alt="Logo 17º BPM" 
+            width={48} 
+            height={48}
+            priority 
+            className="select-none object-contain transition-transform duration-300 hover:scale-105"
+          />
+        </div>
+        
+        <div className="flex flex-col ml-3.5">
+          <span className="text-white font-extrabold tracking-widest text-sm uppercase leading-none">
             17º BPM
           </span>
-          <span className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">
+          <span className="text-[10px] text-slate-400 font-semibold tracking-wide mt-1.5 whitespace-nowrap">
             Etilômetros - Gestão P4
           </span>
         </div>
       </div>
 
-      {/* Primeiro Separador */}
       <div className="px-6 shrink-0">
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
       </div>
 
-      {/* Centro do Menu: Navegação Baseada em Rotas */}
       <nav className="flex-1 flex flex-col justify-center space-y-1.5 py-6 overflow-y-auto scrollbar-none">
         {menuItems.map((item) => {
           const Icon = item.icon;
           
-          // Tratamento corrigido para a rota raiz "/" e sub-rotas do dashboard
           const isActive = item.path === "/" 
             ? pathname === item.path 
             : pathname === item.path || pathname.startsWith(`${item.path}/`);
@@ -97,17 +96,15 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Segundo Separador */}
       <div className="px-6 shrink-0">
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
       </div>
       
-      {/* Botão de Logout */}
       <div className="w-full px-4 pt-6 mb-8 shrink-0">
         <button 
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className={`w-full py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 m-0
+          className={`w-full py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 m-0 cursor-pointer
             ${isLoggingOut ? "opacity-70 bg-slate-600 cursor-not-allowed" : "hover:scale-[1.02] bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-lg shadow-blue-500/30"}`}
         >
           {isLoggingOut ? (

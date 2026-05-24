@@ -1,18 +1,18 @@
 "use client";
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/page";
-// IMPORTAÇÃO DA BASE DE DADOS REAL CENTRALIZADA
-import { etilometrosDados } from "../data"; 
 import { 
   ArrowLeft, 
   Shield, 
   Cpu, 
   Calendar, 
-  Clock, 
   Wrench, 
   FileText,
-  AlertTriangle 
+  AlertTriangle,
+  Printer,
+  Loader2 
 } from "lucide-react";
 
 export default function DetalhesEtilometroPage() {
@@ -20,10 +20,38 @@ export default function DetalhesEtilometroPage() {
   const router = useRouter();
   const id = params.id;
 
-  // Busca o aparelho correto com base no ID real passado pela URL
-  const aparelho = etilometrosDados.find((item) => item.id === id);
+  const [aparelho, setAparelho] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // Estilização das badges mantendo a consistência visual do inventário
+  useEffect(() => {
+    async function buscarDetalhes() {
+      try {
+        setLoading(true);
+        setError(false);
+        
+        const origin = window.location.origin;
+        const response = await fetch(`${origin}/api/etilometros/${id}`);
+        
+        if (!response.ok) {
+          throw new Error("Equipamento não localizado no servidor.");
+        }
+
+        const dadosReais = await response.json();
+        setAparelho(dadosReais);
+      } catch (err) {
+        console.error("Erro ao buscar detalhes no Neon Postgres:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      buscarDetalhes();
+    }
+  }, [id]);
+
   const getStatusStyle = (status) => {
     switch (status) {
       case "Operacional": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/25";
@@ -33,8 +61,29 @@ export default function DetalhesEtilometroPage() {
     }
   };
 
-  // Se o ID da URL não for encontrado na base real
-  if (!aparelho) {
+  const formatarData = (dataString) => {
+    if (!dataString) return "Não informada";
+    try {
+      const data = new Date(dataString);
+      return data.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    } catch {
+      return dataString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen bg-slate-950 p-4 gap-4">
+        <div className="w-80 h-full shrink-0"><Sidebar /></div>
+        <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col items-center justify-center text-slate-500">
+          <Loader2 className="text-blue-500 animate-spin mb-3" size={32} />
+          <p className="text-xs">Buscando ficha técnica no Neon Postgres...</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !aparelho) {
     return (
       <div className="flex h-screen w-screen bg-slate-950 p-4 gap-4">
         <div className="w-80 h-full shrink-0"><Sidebar /></div>
@@ -53,15 +102,31 @@ export default function DetalhesEtilometroPage() {
   return (
     <div className="flex h-screen w-screen bg-slate-950 overflow-hidden p-4 gap-4">
       
-      {/* SIDEBAR */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .container-sombrio::-webkit-scrollbar {
+          width: 8px !important;
+          height: 8px !important;
+        }
+        .container-sombrio::-webkit-scrollbar-track {
+          background: #0f172a !important;
+          border-radius: 0 16px 16px 0 !important;
+        }
+        .container-sombrio::-webkit-scrollbar-thumb {
+          background: #334155 !important;
+          border-radius: 20px !important;
+          border: 2px solid #0f172a !important;
+        }
+        .container-sombrio::-webkit-scrollbar-thumb:hover {
+          background: #2563eb !important;
+        }
+      `}} />
+
       <div className="w-80 h-full shrink-0">
         <Sidebar />
       </div>
 
-      {/* CONTEÚDO PRINCIPAL */}
-      <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col overflow-y-auto">
+      <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col overflow-y-auto container-sombrio">
         
-        {/* CABEÇALHO COM BOTÃO RETORNAR */}
         <div className="flex items-center justify-between border-b border-slate-800/60 pb-5 mb-6">
           <div className="flex items-center gap-4">
             <button 
@@ -74,8 +139,8 @@ export default function DetalhesEtilometroPage() {
             <div>
               <div className="flex items-center gap-2.5">
                 <h2 className="text-xl font-bold text-white tracking-tight">{aparelho.equipamento}</h2>
-                <span className="font-mono bg-slate-950 text-slate-400 border border-slate-800 text-[10px] px-2 py-0.5 rounded-md font-bold">
-                  {aparelho.id}
+                <span className="font-mono bg-slate-950 text-slate-400 border border-slate-800 text-[10px] px-2 py-0.5 rounded-md font-bold max-w-[160px] truncate" title={aparelho.id}>
+                  ID: {aparelho.id}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">Ficha técnica detalhada e histórico de manutenção da carga.</p>
@@ -87,93 +152,103 @@ export default function DetalhesEtilometroPage() {
           </span>
         </div>
 
-        {/* GRID DE INFORMAÇÕES TÉCNICAS */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-5 mb-6">
           
-          {/* CARD 1: IDENTIFICAÇÃO DO EQUIPAMENTO */}
           <div className="bg-slate-950/30 border border-slate-800/80 rounded-xl p-5 flex flex-col gap-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Cpu size={14} className="text-blue-500" /> Identificação e Modelo
+              <Cpu size={14} className="text-blue-500" /> Identificação
             </h3>
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
                 <span className="text-slate-500">Nº de Série:</span>
-                <span className="font-mono font-bold text-white">{aparelho.serie}</span>
+                <span className="font-mono font-bold text-white text-right pr-2">{aparelho.serie}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
-                <span className="text-slate-500">Fabricante / Marca:</span>
-                <span className="font-medium text-slate-200">{aparelho.marca || "Dräger"}</span>
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
+                <span className="text-slate-500">Nº de Patrimônio:</span>
+                <span className="font-mono font-bold text-blue-400 text-right pr-2">{aparelho.patrimonio}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <div className="grid grid-cols-[1fr_auto] gap-2">
                 <span className="text-slate-500">Modelo Oficial:</span>
-                <span className="font-medium text-slate-200">{aparelho.modelo || aparelho.equipamento}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Portaria INMETRO:</span>
-                <span className="font-mono font-medium text-slate-300">{aparelho.numInmetro || "Pendente"}</span>
+                <span className="font-medium text-slate-200 text-right truncate max-w-[140px] pr-2" title={aparelho.equipamento}>
+                  {aparelho.equipamento}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* CARD 2: CARGA E RESPONSABILIDADE */}
           <div className="bg-slate-950/30 border border-slate-800/80 rounded-xl p-5 flex flex-col gap-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Shield size={14} className="text-blue-500" /> Alocação Atual
             </h3>
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
                 <span className="text-slate-500">Carga / Destino:</span>
-                <span className="font-bold text-slate-200">{aparelho.cia}</span>
+                <span className="font-bold text-slate-200 text-right pr-2">{aparelho.cia}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2 items-start">
                 <span className="text-slate-500">Detentor da Carga:</span>
-                <span className="font-medium text-slate-300">{aparelho.responsavel || "Seção de Logística"}</span>
+                <span className="font-bold text-slate-300 text-right break-words max-w-[130px] pr-2">
+                  {aparelho.responsavel || "Seção de Logística"}
+                </span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+
+              <div className="grid grid-cols-[1fr_auto] gap-2">
                 <span className="text-slate-500">Unidade Vinculada:</span>
-                <span className="font-medium text-slate-400">17º BPM</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Última Atualização:</span>
-                <span className="font-medium text-slate-400">Recentemente via Carga</span>
+                <span className="font-medium text-slate-400 text-right pr-2">17º BPM</span>
               </div>
             </div>
           </div>
 
-          {/* CARD 3: VALIDAÇÃO E CALIBRAÇÃO */}
           <div className="bg-slate-950/30 border border-slate-800/80 rounded-xl p-5 flex flex-col gap-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Calendar size={14} className="text-blue-500" /> Prazos de Validade (RBML)
+              <Printer size={14} className="text-blue-500" /> Impressora
             </h3>
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
+                <span className="text-slate-500">Marca:</span>
+                <span className="font-medium text-slate-200 text-right pr-2">{aparelho.impressoraMarca || "N/A"}</span>
+              </div>
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
+                <span className="text-slate-500">Modelo:</span>
+                <span className="font-medium text-slate-200 text-right pr-2">{aparelho.impressoraModelo || "N/A"}</span>
+              </div>
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <span className="text-slate-500">Nº Patrimônio:</span>
+                <span className={`font-mono font-bold text-right pr-2 ${aparelho.impressoraPatrimonio ? "text-amber-500" : "text-slate-500"}`}>
+                  {aparelho.impressoraPatrimonio || "Não Vinculada"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-950/30 border border-slate-800/80 rounded-xl p-5 flex flex-col gap-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <Calendar size={14} className="text-blue-500" /> Prazos de Validade
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
                 <span className="text-slate-500">Última Calibração:</span>
-                <span className="font-semibold text-slate-300 flex items-center gap-1">
-                  <Clock size={12} className="text-slate-500" /> {aparelho.ultimaCalibracao || "01/02/2026"}
+                <span className="font-semibold text-slate-300 text-right pr-2 tabular-nums">
+                  {formatarData(aparelho.ultimaCalibracao)}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
+              <div className="grid grid-cols-[1fr_auto] border-b border-slate-800/40 pb-2 gap-2">
                 <span className="text-slate-500">Próxima Calibração:</span>
-                <span className={`font-bold flex items-center gap-1 ${aparelho.status === "Aferição Vencendo" ? "text-amber-400" : aparelho.status === "Manutenção" ? "text-rose-400" : "text-emerald-400"}`}>
-                  <Calendar size={12} /> {aparelho.proximaCalibracao || "01/02/2027"}
+                <span className={`font-bold text-right pr-2 tabular-nums ${aparelho.status === "Aferição Vencendo" ? "text-amber-400" : aparelho.status === "Manutenção" ? "text-rose-400" : "text-emerald-400"}`}>
+                  {formatarData(aparelho.proximaCalibracao)}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-slate-800/40 pb-2">
-                <span className="text-slate-500">Periodicidade Exigida:</span>
-                <span className="font-medium text-slate-400">12 Meses</span>
-              </div>
-              <div className="flex justify-between">
+              <div className="grid grid-cols-[1fr_auto] gap-2">
                 <span className="text-slate-500">Situação de Uso:</span>
-                <span className={`font-semibold ${aparelho.status === "Manutenção" ? "text-rose-400" : "text-emerald-400"}`}>
+                <span className={`font-bold text-right pr-2 ${aparelho.status === "Manutenção" ? "text-rose-400" : "text-emerald-400"}`}>
                   {aparelho.status === "Manutenção" ? "Bloqueado para Uso" : "Liberado para Escala"}
                 </span>
               </div>
             </div>
           </div>
-
         </div>
 
-        {/* OBSERVAÇÕES COMPLEMENTARES */}
         <div className="bg-slate-950/30 border border-slate-800/80 rounded-xl p-5 mb-6 flex flex-col gap-3">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
             <FileText size={14} className="text-blue-500" /> Observações do P4
@@ -183,7 +258,6 @@ export default function DetalhesEtilometroPage() {
           </p>
         </div>
 
-        {/* HISTÓRICO DE EVENTOS / MANUTENÇÃO */}
         <div className="bg-slate-950/10 rounded-xl border border-slate-800 flex flex-col flex-1 min-h-[220px]">
           <div className="p-4 bg-slate-900/50 border-b border-slate-800 rounded-t-xl flex items-center gap-2">
             <Wrench size={14} className="text-blue-500" />
@@ -194,19 +268,12 @@ export default function DetalhesEtilometroPage() {
             <div className="relative pl-5 border-l-2 border-blue-500/30 space-y-1">
               <div className="absolute w-2 h-2 rounded-full bg-blue-500 -left-[5px] top-1.5" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">{aparelho.ultimaCalibracao || "01/02/2026"}</span>
+                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800 tabular-nums">
+                  {formatarData(aparelho.ultimaCalibracao)}
+                </span>
                 <span className="text-xs font-bold text-slate-200">Aferição Anual Obrigatória Realizada</span>
               </div>
-              <p className="text-xs text-slate-400">Certificado emitido via INMETRO sem restrições. Equipamento calibrado e lacrado.</p>
-            </div>
-
-            <div className="relative pl-5 border-l-2 border-blue-500/10 space-y-1">
-              <div className="absolute w-2 h-2 rounded-full bg-slate-700 -left-[5px] top-1.5" />
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">10/12/2025</span>
-                <span className="text-xs font-bold text-slate-400">Higienização e Conferência de Kit</span>
-              </div>
-              <p className="text-xs text-slate-500">Manutenção preventiva de rotina realizada pela Seção de Logística.</p>
+              <p className="text-xs text-slate-400">Certificado sincronizado via sistema interno. Equipamento calibrado e lacrado.</p>
             </div>
           </div>
         </div>

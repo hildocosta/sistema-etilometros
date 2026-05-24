@@ -1,0 +1,38 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Etilometro {
+  id                   String    @id @default(uuid())
+  equipamento          String   
+  serie                String    @unique
+  patrimonio           String    @unique
+  cia                  String
+  status               String    @default("Operacional")
+  responsavel          String?  
+  impressoraMarca      String?  
+  impressoraModelo     String?  
+  impressoraPatrimonio String?  
+  
+  ultimaCalibracao     DateTime?  
+  proximaCalibracao    DateTime?  
+ 
+  documentoAmparo      String?  
+  motivoMovimentacao   String?   
+  
+  observacoes          String?  
+  dataCriacao          DateTime  @default(now())
+  atualizadoEm         DateTime  @updatedAt
+}
+
+model Usuario {
+  id          String   @id @default(uuid())
+  nome        String
+  email       String   @unique
+  senha       String
+  dataCriacao DateTime @default(now())
+}
