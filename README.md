@@ -57,7 +57,7 @@ O sistema foi reconstruído sob uma abordagem **Fullstack com Persistência Rela
 ### 🚀 Nova Interface Digital (SisCarga)
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-  <tr>
+<tr>
     <td width="50%" valign="top" style="padding: 10px;">
       <div align="center" style="border: 1px solid #eaecef; border-radius: 12px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         <p align="center"><img src="https://img.shields.io/badge/🔐-Login_P4-blue?style=flat" /></p>
@@ -68,12 +68,11 @@ O sistema foi reconstruído sob uma abordagem **Fullstack com Persistência Rela
     <td width="50%" valign="top" style="padding: 10px;">
       <div align="center" style="border: 1px solid #eaecef; border-radius: 12px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         <p align="center"><img src="https://img.shields.io/badge/📊-Inventário_Central-darkblue?style=flat" /></p>
+        <img src="https://raw.githubusercontent.com/hildocosta/sistema-etilometros/main/inventario-geral.png" width="100%" style="border-radius: 8px; border: 1px solid #f0f0f0;" />
         <p align="center" style="font-size: 11px; color: #586069; margin-bottom: 15px; min-height: 25px;">Painel de controle com filtros por Cia PM e badges automatizados de status legal.</p>
-        <img src="./screenshots/dashboard-etilometros.png" width="100%" style="border-radius: 8px; border: 1px solid #f0f0f0;" />
       </div>
     </td>
   </tr>
-
   <tr>
     <td width="50%" valign="top" style="padding: 10px;">
       <div align="center" style="border: 1px solid #eaecef; border-radius: 12px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
