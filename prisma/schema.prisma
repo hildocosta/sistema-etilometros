@@ -7,12 +7,12 @@ generator client {
 }
 
 model Etilometro {
-  id                   String    @id @default(uuid())
+  id                   String      @id @default(uuid())
   equipamento          String   
-  serie                String    @unique
-  patrimonio           String    @unique
+  serie                String      @unique
+  patrimonio           String      @unique
   cia                  String
-  status               String    @default("Operacional")
+  status               String      @default("Operacional")
   responsavel          String?  
   impressoraMarca      String?  
   impressoraModelo     String?  
@@ -20,19 +20,40 @@ model Etilometro {
   
   ultimaCalibracao     DateTime?  
   proximaCalibracao    DateTime?  
- 
+
   documentoAmparo      String?  
   motivoMovimentacao   String?   
   
   observacoes          String?  
-  dataCriacao          DateTime  @default(now())
-  atualizadoEm         DateTime  @updatedAt
+  dataCriacao          DateTime    @default(now())
+  atualizadoEm         DateTime    @updatedAt
+
+  historicos           Historico[]
+}
+
+model Historico {
+  id            String     @id @default(uuid())
+  data          DateTime   @default(now())
+  titulo        String     
+  descricao     String     
+  tipo          String     @default("info") 
+
+  etilometroId  String
+  etilometro    Etilometro @relation(fields: [etilometroId], references: [id], onDelete: Cascade)
+
+  usuarioId     String?
+  usuario       Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([etilometroId])
+  @@index([usuarioId])
 }
 
 model Usuario {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   nome        String
-  email       String   @unique
+  email       String      @unique
   senha       String
-  dataCriacao DateTime @default(now())
+  dataCriacao DateTime    @default(now())
+
+  historicos  Historico[]
 }

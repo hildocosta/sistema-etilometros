@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/api/etilometros/route.js"  ],
+, "app/api/etilometros/route.js", "app/page.jsx"  ],
   "exclude": ["node_modules"]
 }
