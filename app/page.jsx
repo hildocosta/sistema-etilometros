@@ -17,14 +17,11 @@ import {
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
 export default function DashboardPage() {
-  const [mounted, setMounted] = useState(false);
   const [etilometros, setEtilometros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setMounted(true);
-
     const carregarDadosDaAPI = async () => {
       try {
         setLoading(true);
@@ -44,82 +41,18 @@ export default function DashboardPage() {
         setError(null);
       } catch (err) {
         console.error("Erro ao buscar dados patrimoniais do P4:", err);
-        setError(err.message);
+        setError(err?.message || "Erro desconhecido ao processar requisição");
       } finally {
         setLoading(false);
       }
     };
 
     carregarDadosDaAPI();
-  }, []);
+  }, []); // Removemos o setMounted daqui de dentro
 
-  const processarDadosReais = () => {
-    const hoje = new Date();
-
-    let totalAparelhos = etilometros.length;
-    let operacionaisReais = 0;
-    let afericaoVencidaReais = 0;
-    let emManutencaoReais = 0;
-    let prontosDisponiveisAlmox = 0;
-    let operacionaisCauteladosNaRua = 0;
-
-    const subunidadesCriticas = [];
-
-    etilometros.forEach((aparelho) => {
-      if (aparelho.status === "Manutenção") {
-        emManutencaoReais++;
-      } else {
-        if (aparelho.proximaCalibracao) {
-          const dataCalibracao = aparelho.proximaCalibracao.includes("-")
-            ? new Date(aparelho.proximaCalibracao)
-            : (() => {
-                const [dia, mes, ano] = aparelho.proximaCalibracao.split("/");
-                return new Date(Number(ano), Number(mes) - 1, Number(dia));
-              })();
-
-          if (dataCalibracao < hoje) {
-            afericaoVencidaReais++;
-            subunidadesCriticas.push({
-              serie: aparelho.serie,
-              cia: aparelho.cia || "Não Informada",
-              vencimento: aparelho.proximaCalibracao.includes("-") 
-                ? aparelho.proximaCalibracao.split("T")[0] 
-                : aparelho.proximaCalibracao
-            });
-          } else {
-            operacionaisReais++;
-            
-            if (aparelho.cia && aparelho.cia.toLowerCase().includes("almoxarifado")) {
-              prontosDisponiveisAlmox++;
-            } else {
-              operacionaisCauteladosNaRua++;
-            }
-          }
-        }
-      }
-    });
-
-    return {
-      total: totalAparelhos,
-      operacionais: operacionaisReais,
-      disponiveisAlmox: prontosDisponiveisAlmox,
-      cauteladosRua: operacionaisCauteladosNaRua,
-      alertas: afericaoVencidaReais,
-      manutencao: emManutencaoReais,
-      criticos: subunidadesCriticas
-    };
-  };
-
-  const dadosReais = processarDadosReais();
-
-  const graficoDados = [
-    { name: "Prontos no Almoxarifado", valor: dadosReais.disponiveisAlmox, fill: "#10b981" },
-    { name: "Operacionais em Cautela", valor: dadosReais.cauteladosRua, fill: "#3b82f6" },
-    { name: "Aferição Vencida", valor: dadosReais.alertas, fill: "#f59e0b" },
-    { name: "Retidos / Manutenção", valor: dadosReais.manutencao, fill: "#ef4444" }
-  ];
-
-  if (!mounted || loading) {
+  // Se ainda estiver carregando, mostra a tela de sincronização
+  // Isso já resolve naturalmente o problema de hidratação do Next.js
+  if (loading) {
     return (
       <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center text-slate-500 font-bold gap-3">
         <Shield size={40} className="text-blue-500 animate-spin"/> 
@@ -153,25 +86,77 @@ export default function DashboardPage() {
     );
   }
 
+  // Lógica de processamento mantida idêntica
+  const processarDadosReais = () => {
+    const hoje = new Date();
+    const totalAparelhos = etilometros.length;
+    let operacionaisReais = 0;
+    let afericaoVencidaReais = 0;
+    let emManutencaoReais = 0;
+    let prontosDisponiveisAlmox = 0;
+    let operacionaisCauteladosNaRua = 0;
+    const subunidadesCriticas = [];
+
+    etilometros.forEach((aparelho) => {
+      if (aparelho.status === "Manutenção") {
+        emManutencaoReais++;
+      } else {
+        if (aparelho.proximaCalibracao) {
+          const dataCalibracao = aparelho.proximaCalibracao.includes("-")
+            ? new Date(aparelho.proximaCalibracao)
+            : (() => {
+                const [dia, mes, ano] = aparelho.proximaCalibracao.split("/");
+                return new Date(Number(ano), Number(mes) - 1, Number(dia));
+              })();
+
+          if (dataCalibracao < hoje) {
+            afericaoVencidaReais++;
+            subunidadesCriticas.push({
+              serie: aparelho.serie,
+              cia: aparelho.cia || "Não Informada",
+              vencimento: aparelho.proximaCalibracao.includes("-") 
+                ? aparelho.proximaCalibracao.split("T")[0] 
+                : aparelho.proximaCalibracao
+            });
+          } else {
+            operacionaisReais++;
+            if (aparelho.cia && aparelho.cia.toLowerCase().includes("almoxarifado")) {
+              prontosDisponiveisAlmox++;
+            } else {
+              operacionaisCauteladosNaRua++;
+            }
+          }
+        }
+      }
+    });
+
+    return {
+      total: totalAparelhos,
+      operacionais: operacionaisReais,
+      disponiveisAlmox: prontosDisponiveisAlmox,
+      cauteladosRua: operacionaisCauteladosNaRua,
+      alertas: afericaoVencidaReais,
+      manutencao: emManutencaoReais,
+      criticos: subunidadesCriticas
+    };
+  };
+
+  const dadosReais = processarDadosReais();
+
+  const graficoDados = [
+    { name: "Prontos no Almoxarifado", valor: dadosReais.disponiveisAlmox, fill: "#10b981" },
+    { name: "Operacionais em Cautela", valor: dadosReais.cauteladosRua, fill: "#3b82f6" },
+    { name: "Aferição Vencida", valor: dadosReais.alertas, fill: "#f59e0b" },
+    { name: "Retidos / Manutenção", valor: dadosReais.manutencao, fill: "#ef4444" }
+  ];
+
   return (
     <div className="flex h-screen w-screen bg-slate-950 overflow-hidden p-4 gap-4 antialiased">
-      
       <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 5px !important;
-          height: 5px !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(2, 6, 23, 0.4) !important;
-          border-radius: 8px !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155 !important;
-          border-radius: 20px !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #2563eb !important;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px !important; height: 5px !important; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(2, 6, 23, 0.4) !important; border-radius: 8px !important; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155 !important; border-radius: 20px !important; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2563eb !important; }
       `}} />
 
       <div className="w-80 h-full shrink-0">
@@ -179,7 +164,6 @@ export default function DashboardPage() {
       </div>
 
       <main className="flex-1 h-full bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col overflow-hidden">
-        
         <div className="mb-6 shrink-0 flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -190,12 +174,12 @@ export default function DashboardPage() {
           </div>
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5 flex items-center gap-2">
             <Activity size={14} className="text-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Dados em Produção Ativos</span>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Dados em Production Ativos</span>
           </div>
         </div>
 
+        {/* Linhas dos Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5 shrink-0">
-          
           <div className="p-4 bg-slate-950/40 rounded-xl border border-slate-800 flex items-center justify-between">
             <div>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Carga Total</p>
@@ -245,11 +229,10 @@ export default function DashboardPage() {
               <Shield size={18} />
             </div>
           </div>
-
         </div>
 
+        {/* Gráfico e Alertas */}
         <div className="flex-1 flex gap-5 overflow-hidden">
-          
           <div className="w-7/12 bg-slate-950/30 border border-slate-800 rounded-2xl p-5 flex flex-col overflow-hidden">
             <div className="border-b border-slate-800/80 pb-3 mb-4">
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
@@ -260,31 +243,15 @@ export default function DashboardPage() {
             <div className="flex-1 relative min-h-0 flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie 
-                    data={graficoDados} 
-                    innerRadius="65%" 
-                    outerRadius="85%" 
-                    paddingAngle={6} 
-                    dataKey="valor"
-                    stroke="none"
-                  >
+                  <Pie data={graficoDados} innerRadius="65%" outerRadius="85%" paddingAngle={6} dataKey="valor" stroke="none">
                     {graficoDados.map((entry, i) => (
                       <Cell key={`cell-${i}`} fill={entry.fill} className="outline-none" />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "1px solid #334155", color: "#fff", fontSize: "11px" }}
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    align="center"
-                    iconType="circle"
-                    iconSize={8}
-                    formatter={(value) => <span className="text-[9px] font-bold uppercase text-slate-400 tracking-wider px-1">{value}</span>}
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderRadius: "12px", border: "1px solid #334155", color: "#fff", fontSize: "11px" }} />
+                  <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={8} formatter={(value) => <span className="text-[9px] font-bold uppercase text-slate-400 tracking-wider px-1">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
-              
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+14px)] text-center pointer-events-none">
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Patrimônios</p>
                 <p className="text-4xl font-black text-white mt-1">{dadosReais.total}</p>
@@ -297,9 +264,7 @@ export default function DashboardPage() {
               <h2 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
                 <AlertTriangle size={14} /> Alertas de Ação Imediata
               </h2>
-              <span className="text-[9px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-black border border-rose-500/20">
-                Aferição Pendente
-              </span>
+              <span className="text-[9px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-black border border-rose-500/20">Aferição Pendente</span>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -327,9 +292,7 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-
         </div>
-
       </main>
     </div>
   );
