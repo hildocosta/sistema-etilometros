@@ -6,9 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 
-import Input from "../../components/Input/Input";
-import ActionButton from "../../components/ActionButton/ActionButton";
-import Footer from "../../components/Footer/Footer";
+import Input from "../../../components/Input/Input";
+import ActionButton from "../../../components/ActionButton/ActionButton";
+import Footer from "../../../components/Footer/Footer";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
