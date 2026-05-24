@@ -49,7 +49,7 @@ O sistema foi reconstruído sob uma abordagem **Fullstack com Persistência Rela
 
 ### 🚩 Processo Antigo (Baseado em Planilhas e Controles Manuais)
 <p align="center">
-  <img src="./screenshots/relatorio_ilustrativo.png" width="25%" style="border-radius: 8px; border: 1px solid #eaecef;" />
+  <img src="https://raw.githubusercontent.com/hildocosta/sistema-etilometros/main/planilha%20de%20etilometros.png" width="50%" style="border-radius: 8px; border: 1px solid #eaecef;" />
   <br>
   <em style="font-size: 11px; color: #586069;">Representação do controle descentralizado e vulnerável a lapsos temporais de calibração (imagem ilustrativa).</em>
 </p>
